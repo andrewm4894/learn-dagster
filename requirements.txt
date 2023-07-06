@@ -1,3 +1,5 @@
 dagster
 dagit
 pandas
+matplotlib
+dagster-duckdb-pandas

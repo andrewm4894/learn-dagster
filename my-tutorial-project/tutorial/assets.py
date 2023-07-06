@@ -3,7 +3,6 @@ import pandas as pd
 import base64
 from io import BytesIO
 import matplotlib.pyplot as plt
-import pandas as pd
 import requests
 from dagster import (
     AssetKey,
@@ -15,7 +14,9 @@ from dagster import (
 )
 
 
-@asset # add the asset decorator to tell Dagster this is an asset
+@asset(
+    group_name="hackernews",
+)
 def topstory_ids():
     logger = get_dagster_logger()
     newstories_url = "https://hacker-news.firebaseio.com/v0/topstories.json"
@@ -24,7 +25,10 @@ def topstory_ids():
     return top_new_story_ids
 
 
-@asset
+@asset(
+    group_name="hackernews",
+    io_manager_key="database_io_manager",
+)
 def topstories(topstory_ids):
     logger = get_dagster_logger()
 
@@ -40,22 +44,18 @@ def topstories(topstory_ids):
 
     df = pd.DataFrame(results)
 
-    return Output(  # The return value is updated to wrap it in `Output` class
-        value=df,  # The original df is passed in with the `value` parameter
+    return Output(
+        value=df,
         metadata={
-            "num_records": len(df),  # Metadata can be any key-value pair
-            "preview": MetadataValue.md(df.head().to_markdown()),
-            # The `MetadataValue` class has useful static methods to build Metadata
+            "num_records": len(df),
+            "preview": MetadataValue.md(df.head().to_markdown())
         },
     )
 
 
-@asset
-def hello(context):
-    context.log.info("Hello, World!")
-
-
-@asset
+@asset(
+    group_name="hackernews",
+)
 def most_frequent_words(topstories):
     stopwords = ["a", "the", "an", "of", "to", "in", "for", "and", "with", "on", "is"]
 
@@ -74,5 +74,30 @@ def most_frequent_words(topstories):
         for pair in sorted(word_counts.items(), key=lambda x: x[1], reverse=True)[:25]
     }
 
-    return top_words
+    # Make a bar chart of the top 25 words
+    plt.figure(figsize=(10, 6))
+    plt.bar(top_words.keys(), top_words.values())
+    plt.xticks(rotation=45, ha="right")
+    plt.title("Top 25 Words in Hacker News Titles")
+    plt.tight_layout()
 
+    # Convert the image to a saveable format
+    buffer = BytesIO()
+    plt.savefig(buffer, format="png")
+    image_data = base64.b64encode(buffer.getvalue())
+
+    # Convert the image to Markdown to preview it within Dagster
+    md_content = f"![img](data:image/png;base64,{image_data.decode()})"
+
+    # Attach the Markdown content as metadata to the asset
+    return Output(
+        value=top_words,
+        metadata={"plot": MetadataValue.md(md_content)},
+    )
+
+    
+@asset(
+    group_name="hello",
+)
+def hello(context):
+    context.log.info("Hello, World!")
