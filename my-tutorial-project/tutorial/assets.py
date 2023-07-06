@@ -94,10 +94,3 @@ def most_frequent_words(topstories):
         value=top_words,
         metadata={"plot": MetadataValue.md(md_content)},
     )
-
-    
-@asset(
-    group_name="hello",
-)
-def hello(context):
-    context.log.info("Hello, World!")

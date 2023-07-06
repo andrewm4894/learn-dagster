@@ -154,3 +154,8 @@ cython_debug/
 # dagster stuff
 tmp*
 data
+# local duckdb database
+analytics.hackernews
+.gitignore
+my-tutorial-project/analytics.hackernews
+*.hackernews

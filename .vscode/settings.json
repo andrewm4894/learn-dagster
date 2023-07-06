@@ -1,0 +1,12 @@
+{
+    "sqltools.useNodeRuntime": true,
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "DuckDB",
+            "database": "${workspaceFolder:learn-dagster}/my-tutorial-project/analytics.hackernews",
+            "name": "analytics.hackernews",
+            "group": "topstories"
+        }
+    ]
+}

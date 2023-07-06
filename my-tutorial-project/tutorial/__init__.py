@@ -19,7 +19,7 @@ hackernews_schedule = ScheduleDefinition(
     cron_schedule="*/10 * * * *",
 )
 
-io_manager = FilesystemIOManager(
+file_io_manager = FilesystemIOManager(
     base_dir="data",
 )
 
@@ -29,7 +29,7 @@ defs = Definitions(
     assets=all_assets,
     schedules=[hackernews_schedule],
     resources={
-        "io_manager": io_manager,
+        "io_manager": file_io_manager,
         "database_io_manager": database_io_manager
     },
 )
