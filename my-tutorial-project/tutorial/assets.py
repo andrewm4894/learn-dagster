@@ -1,4 +1,7 @@
+import urllib.request
 import requests
+import zipfile
+import csv
 import pandas as pd
 import base64
 from io import BytesIO
@@ -56,8 +59,30 @@ def topstories(topstory_ids):
 @asset(
     group_name="hackernews",
 )
+def stopwords_zip() -> None:
+    urllib.request.urlretrieve(
+        "https://docs.dagster.io/assets/stopwords.zip",
+        "data/stopwords.zip",
+    )
+
+
+@asset(
+    group_name="hackernews",
+    non_argument_deps={"stopwords_zip"}
+)
+def stopwords_csv() -> None:
+    with zipfile.ZipFile("data/stopwords.zip", "r") as zip_ref:
+        zip_ref.extractall("data")
+
+
+@asset(
+    group_name="hackernews",
+    non_argument_deps={"stopwords_csv"}
+)
 def most_frequent_words(topstories):
-    stopwords = ["a", "the", "an", "of", "to", "in", "for", "and", "with", "on", "is"]
+    
+    with open("data/stopwords.csv", "r") as f:
+        stopwords = {row[0] for row in csv.reader(f)}
 
     # loop through the titles and count the frequency of each word
     word_counts = {}
